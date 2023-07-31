@@ -56,26 +56,9 @@
                     <NuxtLink to="/sent"
                         class="flex items-center w-full gap-3 p-2 text-base font-normal text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 "
                         aria-controls="dropdown-example1" data-collapse-toggle="dropdown-example1">
-                        <ArrowUpTrayIcon class="w-6 h-6 text-gray-500" /> 
+                        <ArrowUpTrayIcon class="w-6 h-6 text-gray-500" />
                         Sent Box
                     </NuxtLink>
-                    <ul id="dropdown-example1" class="hidden py-2 space-y-2">
-                        <li>
-                            <a data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                                aria-controls="logo-sidebar" type="button" href="#"
-                                class="flex items-center w-full p-2 text-base font-normal text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Products</a>
-                        </li>
-                        <li>
-                            <a data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                                aria-controls="logo-sidebar" type="button" href="#"
-                                class="flex items-center w-full p-2 text-base font-normal text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Billing</a>
-                        </li>
-                        <li>
-                            <a data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                                aria-controls="logo-sidebar" type="button" href="#"
-                                class="flex items-center w-full p-2 text-base font-normal text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Invoice</a>
-                        </li>
-                    </ul>
                 </li>
                 <li>
                     <button type="button"
@@ -169,7 +152,7 @@
 </template>
 
 <script setup>
-import {ArrowUpTrayIcon} from '@heroicons/vue/24/solid'
+import { ArrowUpTrayIcon } from '@heroicons/vue/24/solid'
 
 
 </script>
