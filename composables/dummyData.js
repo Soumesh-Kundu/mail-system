@@ -46,7 +46,7 @@ export function useDummyData(){
         },
     ]
     const sentData=[]
-    const inboxData=useState('inboxData',()=>dummyData)
+    const inboxData=useState('inboxData',()=>[])
     const sentInbox=useState('sentBox',()=>sentData)
     return {inboxData,sentInbox}
 }

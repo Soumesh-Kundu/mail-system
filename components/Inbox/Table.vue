@@ -4,17 +4,17 @@
 
             <tbody>
                 <td v-for="(item, index) in inboxData" :key="item.id"
-                    class='flex items-center justify-between px-2 py-2 border-b cursor-pointer md:px-5 hover:bg-gray-100'>
+                    class='flex items-center justify-between px-2 py-5 border-b cursor-pointer md:px-5 hover:bg-gray-100'>
                     <div class='flex items-center gap-2'>
                         <input id="default-checkbox" type="checkbox" :checked="deletingIndexes.includes(item.id)"
                             @change="addIndexToModify(item.id)"
                             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 " />
                         <StarIcon class="w-5 h-5" />
-                        <NuxtLink :to="`/inbox/${item.id}`" class="flex items-center justify-between gap-3">
-                            <img class="w-10 h-10 rounded-full" :src="item.image" alt="Rounded avatar" />
-                            <h3 class='flex text-base font-bold text-black '><span class="w-20 truncate">{{ item.name
+                        <NuxtLink :to="`/inbox/${item.threadId}`" class="flex items-center justify-between gap-3">
+                            <!-- <img class="w-10 h-10 rounded-full" :src="item.image" alt="Rounded avatar" /> -->
+                            <h3 class='flex text-base font-bold text-black '><span class="truncate w-28">{{ item?.from?.split(/<|>/)[0]
                             }}</span></h3>
-                            <p class='flex ml-5 text-sm font-bold text-gray-500 truncate'>{{ item.subject }}</p>
+                            <p class='flex items-center ml-5 text-base font-bold text-gray-800 truncate'>{{ item.subject }}</p>
                         </NuxtLink>
                     </div>
                     <p class='flex font-semibold whitespace-nowrap'>{{ `${FormatDate(item.date)}` }}</p>
@@ -33,8 +33,19 @@
 <script setup>
 import { StarIcon } from '@heroicons/vue/24/outline'
 const { inboxData } = useDummyData()
+const pageToken=useState('pageInboxToken',()=>"")
 const deletingIndexes = useState('deleteIndex')
 deletingIndexes.value = []
+
+async function fetchmails(){
+    const res=await fetch('/api/messages?type=INBOX',{
+        cache:'default'
+    });
+    const data=await res.json()
+    inboxData.value=data.mails
+    pageToken.value=data.pageToken
+}
+fetchmails()
 
 function addIndexToModify(index) {
     if (deletingIndexes.value.includes(index)) {

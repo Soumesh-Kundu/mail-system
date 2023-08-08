@@ -60,6 +60,9 @@
 import { ArrowLeftIcon, PaperClipIcon, ChevronLeftIcon, ChevronRightIcon,  XMarkIcon } from '@heroicons/vue/24/outline';
 import { PaperAirplaneIcon, FaceSmileIcon, PrinterIcon, TrashIcon } from '@heroicons/vue/24/solid';
 import { nanoid } from 'nanoid'
+// import {useToast} from 'vue-toastification'
+import {toast} from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 const valid = ref(true)
 const { sentInbox } = useDummyData()
@@ -72,18 +75,40 @@ const inputs = ref({ ...emptyInputs, attachments: [] })
 function onFileChange(e) {
     const attachments = e.target.files || e.dataTrasfer.files
     if (!attachments.length) return
-    for (const file of attachments) {
+    for (const file of attachments){
         inputs.value.attachments.push(file)
     }
+    return
 }
-function sendMail() {
+
+async function sendMail() {
     if(!valid.value) return
     sentInbox.value.push({
         ...inputs.value, from: 'test@gmail.com', name: "Test user", id:nanoid(),
         date: new Date().toISOString(), image: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg', replyAndForwards: []
     })
-    clearInputs()
-    navigateTo('/inbox')
+    const formData=new FormData()
+    formData.append('to',inputs.value.to)
+    formData.append('subject',inputs.value.subject)
+    formData.append('body',inputs.value.body)
+    if(inputs.value.attachments.length>0)
+    {
+        for (const file of inputs.value.attachments){
+            formData.append('file',file,file.filename)
+        }
+    }
+    const res=await useFetch('/api/messages/send',{
+        method:'POST',
+        body:formData,
+        onRequest(){
+            clearInputs()
+            navigateTo('/inbox')
+            toast.info('Sending Mail...')
+        },
+        onResponse(){
+            toast.success('Mail send!')
+        }
+    })
 }
 function cancelFile(index) {
     inputs.value.attachments.splice(index, 1)

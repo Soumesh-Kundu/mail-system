@@ -1,11 +1,16 @@
 <script setup>
 import { ClockIcon, TagIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, ArrowUturnLeftIcon, PaperClipIcon } from '@heroicons/vue/24/outline'
 import { ArchiveBoxIcon, PaperAirplaneIcon, TrashIcon, FaceSmileIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/solid'
-import {nanoid} from 'nanoid'
+import { nanoid } from 'nanoid'
 
 const id = useRoute().params.id
-const { inboxData, sentInbox } = useDummyData()
-const detailData = inboxData.value.find(item => item.id === id)
+const isLoading=ref(true)
+let detailData = ref({})
+onMounted(async () => {
+    const res = await fetch(`/api/messages/${id}`)
+    detailData.value = await res.json()
+    isLoading.value=false
+})
 const replyOn = ref(false)
 const forwardOn = ref(false)
 const emptyData = {
@@ -28,7 +33,7 @@ function forwardText(object) {
 
 <template>
     <div class='flex flex-col h-full'>
-        <div class='sticky top-0 right-0 flex justify-between px-2 py-4 bg-white border-b -translate-y-0 md:px-5'>
+        <div class='fixed top-0 left-0 flex justify-between w-full px-2 py-4 bg-white border-b md:ml-64 -translate-y-0 md:px-5'>
             <section class='flex items-center gap-3 text-gray-600'>
                 <NuxtLink to='/inbox'>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
@@ -41,44 +46,42 @@ function forwardText(object) {
                 <ExclamationCircleIcon class="w-6 h-6 text-red-600 cursor-pointer" />
                 <ArchiveBoxIcon class="w-6 h-6 text-blue-400 cursor-pointer" />
                 <TagIcon class="w-6 h-6 cursor-pointer" />
-                <p class='font-bold'>{{ FormatDate(detailData.date) }}</p>
+                <p v-if="!isLoading" class='font-bold'>{{ FormatDate(detailData?.date) }}</p>
             </section>
-            <section class='items-center hidden gap-2 text-gray-600 md:flex'>
+            <!-- <section class='items-center hidden gap-2 text-gray-600 md:flex'>
                 <ArrowUturnLeftIcon class="w-6 h-6" />
                 <TrashIcon class="w-6 h-6 text-red-500" />
                 <ChevronLeftIcon class="w-6 h-6" />
                 <ChevronRightIcon class="w-6 h-6" />
-            </section>
+            </section> -->
         </div>
-        <div class='pb-5 grow'>
+        <div v-if="!isLoading" class='pb-5 mt-12 grow'>
             <div class="bg-gray-100">
                 <section class='flex items-center gap-2 pt-3 mx-2 md:mx-5'>
-                    <img class="w-8 h-8 mr-1 rounded-full" :src="detailData.image" alt="Rounded avatar" />
                     <div>
-                        <p class='font-bold'>{{ detailData.name }}</p>
-                        <p class='text-gray-600'>{{ detailData.from }}</p>
+                        <p class='font-bold text-black'>{{ detailData?.from?.split(/<|>/)[0] }} <span class="text-sm text-gray-600">&lt;{{ detailData?.from?.split(/<|>/)[1] }}&gt;</span></p>
+                        <p>to <span class="font-semibold">{{ detailData?.to === 'iamsoumo26@gmail.com' ? 'me' : detailData?.to
+                        }}</span></p>
                     </div>
                 </section>
                 <section class='px-2 pb-3 md:px-5'>
-                    <h2 class='py-5 text-lg font-bold md:text-2xl'>{{ detailData.subject }}</h2>
-                    <p class='mb-3 text-gray-800' v-for="(para, index) in detailData.body.split('\n')" :key="index">{{ para
-                    }}</p>
-                    <br v-if="detailData?.attachments?.length>0">
-                    <span  v-if="detailData?.attachments?.length>0" class="font-semibold">attachments:</span>
-                    <div v-if="detailData?.attachments?.length>0" class="flex flex-wrap gap-3 mt-5">
+                    <h2 class='py-5 text-lg font-bold'>{{ detailData?.subject }}</h2>
+                    <p v-html="detailData?.body?.html"></p>
+                    <br v-if="detailData?.attachments?.length > 0">
+                    <span v-if="detailData?.attachments?.length > 0" class="font-semibold">attachments:</span>
+                    <div v-if="detailData?.attachments?.length > 0" class="flex flex-wrap gap-3 mt-5">
                         <div class="flex items-center gap-2 px-2 py-1 bg-gray-300 rounded-full"
-                            v-for="(file, index) in detailData.attachments" :key="index">
+                            v-for="(file, index) in detailData?.attachments" :key="index">
                             <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.name }}
-                            <a :href="getFileUrl(file)" :download="file.name" class="p-1.5 rounded-full hover:bg-white duration-200" >
+                            <a @click.prevent="getFileUrl({...file,messageId:detailData.messageId})"
+                                class="p-1.5 rounded-full hover:bg-white duration-200">
                                 <ArrowDownTrayIcon class="w-4 h-4" />
                             </a>
                         </div>
                     </div>
-                    <p class='mt-5 font-medium'>Best Regards,</p>
-                    <p class='font-medium '>{{ detailData.name }}, CEO Themesberg LLC</p>
                 </section>
             </div>
-            <div v-for="(item, index) in detailData.replyAndForwards" :key="index"
+            <div v-for="(item, index) in detailData?.replyAndForwards" :key="index"
                 :class="{ 'bg-gray-100': (index + 1) % 2 === 0, 'bg-white': (index + 1) % 2 !== 0 }">
                 <section class='flex items-center gap-2 pt-3 mx-2 md:mx-5'>
                     <img class="w-8 h-8 mr-1 rounded-full" :src="item.image" alt="Rounded avatar" />
@@ -94,21 +97,23 @@ function forwardText(object) {
                             <br>
                         </span>
                     </p>
-                    <br v-if="item?.attachments?.length>0">
-                    <span v-if="item?.attachments?.length>0" class="font-semibold">attachments:</span>
-                    <div v-if="item?.attachments?.length>0" class="flex flex-wrap gap-3 mt-5">
+                    <br v-if="item?.attachments?.length > 0">
+                    <span v-if="item?.attachments?.length > 0" class="font-semibold">attachments:</span>
+                    <div v-if="item?.attachments?.length > 0" class="flex flex-wrap gap-3 mt-5">
                         <div class="flex items-center gap-2 px-2 py-1 bg-gray-300 rounded-full"
                             v-for="(file, index) in item.attachments" :key="index">
                             <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.name }}
-                            <a :href="getFileUrl(file)" :download="file.name" class="p-1.5 rounded-full hover:bg-white duration-200" >
+                            <a :download="file.filename"
+                                class="p-1.5 rounded-full hover:bg-white duration-200">
                                 <ArrowDownTrayIcon class="w-4 h-4" />
                             </a>
                         </div>
                     </div>
-                    <p class='mt-5 font-medium'>Best Regards,</p>
-                    <p class='font-medium '>{{ item.name }}, CEO Themesberg LLC</p>
                 </section>
             </div>
+        </div>
+        <div v-else class="mt-12 grow">
+            <SkeletonContent  />
         </div>
         <div class="sticky bottom-0 left-0 w-full bg-white">
             <Reply v-if="replyOn || forwardOn" :replyOn="replyOn" :forwardOn="forwardOn"
@@ -116,7 +121,7 @@ function forwardText(object) {
             <div class='flex items-center w-full px-2 py-3 border-y md:px-5'>
                 <button v-if="replyOn || forwardOn" type="button" @click="() => {
                     const replyOrForward = {
-                        ...data, name: 'Test user', from: 'test@gmail.com', id:nanoid(), date: new Date().toISOString(), image: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg',subject:detailData.subject
+                        ...data, name: 'Test user', from: 'test@gmail.com', id: nanoid(), date: new Date().toISOString(), image: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg', subject: detailData.subject
                     }
                     detailData.replyAndForwards.push(replyOrForward)
                     sentInbox.push(detailData)
@@ -176,5 +181,4 @@ function forwardText(object) {
                 </div>
             </div>
         </div>
-    </div>
-</template>
+    </div></template>

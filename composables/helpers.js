@@ -1,4 +1,6 @@
 import {DocumentIcon,DocumentTextIcon,PhotoIcon,CodeBracketIcon} from '@heroicons/vue/24/outline'
+import { Buffer } from 'buffer'
+
 export function FormatDate(date){
     const newDate=new Date(date)
     const currentDate=new Date()
@@ -17,7 +19,11 @@ export const iconMap = new Map([
     ['code', CodeBracketIcon],
     ['image', PhotoIcon],
 ])
-export function getFileUrl(file){
+export async function getFileUrl(fileObj){
+    // console.log(fileObj)
+    const {data}=await useFetch(`/api/messages/attachment?attachmentId=${fileObj.attachmentId}&messageId=${fileObj.messageId}`)
+    const uin8Data=new Uint8Array(Buffer.from(data?.value.data,'base64'))
+    const file=new File(uin8Data,fileObj.filename,{type:fileObj.type})
     return URL.createObjectURL(file)
 }
 export function typeFinder(type) {
@@ -34,4 +40,9 @@ export function typeFinder(type) {
         return 'code'
     }
     return 'doc'
+}
+
+export function base64urlToSring(str){
+    console.log(str)
+    return new Buffer.from(str,'base64url').toString()
 }
