@@ -14,7 +14,7 @@
                 <ExclamationCircleIcon class="w-6 h-6 text-red-600 cursor-pointer" />
                 <ArchiveBoxIcon class="w-6 h-6 text-blue-400 cursor-pointer" />
                 <TagIcon class="w-6 h-6 cursor-pointer" />
-                <p class='font-bold'>{{ FormatDate(detailData?.date) }}</p>
+                <p class='font-bold' v-if="!isLoading">{{ FormatDate(detailData?.date) }}</p>
             </section>
         </div>
         <div v-if="!isLoading" class='pb-5 mt-12 grow'>
@@ -144,6 +144,8 @@
 import { ClockIcon, TagIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, ArrowUturnLeftIcon, PaperClipIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { ArchiveBoxIcon, PaperAirplaneIcon, TrashIcon, FaceSmileIcon, PrinterIcon } from '@heroicons/vue/24/solid'
 import { nanoid } from 'nanoid'
+import {Buffer} from 'buffer'
+
 const downloadRef = ref(null)
 const id = useRoute().params.id
 const detailData = ref()
@@ -160,16 +162,32 @@ const emptyData = {
     body: "",
     attachments: []
 }
+async function sendReplyOrForward(sendingObj){
+    const formData=new FormData()
+    formData.append('to',data.value.to)
+    formData.append('subject',detailData.value.subject)
+    formData.append('body',`<div>${data.value.body}</div>`)
+    formData.append('messageId',detailData.value.messageId)
+    for(const file of data.value.attachments){
+        formData.append('file',file,file.filename)
+    }
+    await useFetch(`/api/messages/reply?threadId=${id}`,{
+        method:"POST",
+        body:formData
+    })
+}
 function replyText(object) {
     data.value.body = `\n\n\n\n\nOn ${FormatDate(object.date)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:\n    ${object.body.text.slice(0, 150)}${object.body.text.length < 150 ? "" : "..."}`
     return
 }
-async function downloadFIle(obj) {
-    console.log(obj)
-    const url = await getFileUrl(obj)
-    console.log(downloadRef.value)
+async function downloadFIle(fileObj) {
+    const {data} = await useFetch(`/api/messages/attachment?attachmentId=${fileObj.attachmentId}&messageId=${fileObj.messageId}&filename=${fileObj.filename}`)
+
+    const Filedata= new Uint8Array(new Buffer.from(data.value.data,'base64'))
+    const file=new File([Filedata],fileObj.filename,{type:fileObj.type})
+    const url=URL.createObjectURL(file)
     downloadRef.value.href = url
-    downloadRef.value.download = obj.filename
+    downloadRef.value.download =fileObj.filename
     downloadRef.value.click()
 }
 function forwardText(object) {

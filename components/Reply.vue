@@ -7,8 +7,8 @@
                 placeholder="john.doe@company.com" />
         </div>
         <div class="px-2 mb-2 md:px-5">
-            <textarea rows="13" v-model="inputs.body" ref="TextRef"
-                class="  text-gray-900 text-sm  focus:outline-0 rounded-lg block w-full p-2.5 "
+            <div contenteditable rows="13" v-html="inputs.body" ref="TextRef" @input="getBody"
+                class="  text-gray-900 text-sm h-80 overflow-y-auto border focus:outline-0 rounded-lg block w-full p-2.5 "
                 placeholder="body ..." />
 
         </div>
@@ -32,17 +32,10 @@
 import { CodeBracketIcon, DocumentIcon, DocumentTextIcon, PhotoIcon,XMarkIcon } from '@heroicons/vue/24/outline';
 const {replyOn,forwardOn}=defineProps(['replyOn','forwardOn'])
 const inputs = useState('replyData')
-const TextRef=ref(null)
 const emailRef=ref(null)
 onMounted(()=>{
-    if(replyOn){
-        TextRef.value.focus()
-        TextRef.value.setSelectionRange(0,0)
-        TextRef.value.classList.add('h-48')
-    }
     if(forwardOn){
         emailRef.value.focus()
-        TextRef.value.classList.add('h-64')
     }
 })
 
@@ -52,6 +45,10 @@ function addFile(e) {
     for (const file of attachments){
         inputs.value.attachments.push(file)
     }
+}
+
+function getBody(e){
+    inputs.value.body=`${e.target.innerHTML}`
 }
 function typeFinder(type){
     const docRegex=/docx|xlsx|pdf|ashx|txt|ppt|pptx|xls|doc|odt|ods/

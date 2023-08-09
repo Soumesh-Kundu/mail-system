@@ -1,13 +1,13 @@
 import {DocumentIcon,DocumentTextIcon,PhotoIcon,CodeBracketIcon} from '@heroicons/vue/24/outline'
 import { Buffer } from 'buffer'
 
-export function FormatDate(date){
+export function FormatDate(date,format=true){
     const newDate=new Date(date)
     const currentDate=new Date()
-    if(currentDate.toLocaleDateString()===newDate.toLocaleDateString()){
+    if(currentDate.toLocaleDateString()===newDate.toLocaleDateString() && format){
         return `Today, ${newDate.toLocaleTimeString('en-us',{timeStyle:'short'})}`
     }
-    if((currentDate.getDate()===newDate.getDate() +1) && currentDate.getMonth()===newDate.getMonth() && newDate.getFullYear()==currentDate.getFullYear()){
+    if((currentDate.getDate()===newDate.getDate() +1) && currentDate.getMonth()===newDate.getMonth() && newDate.getFullYear()==currentDate.getFullYear() && format){
         return `Yesterday, ${newDate.toLocaleTimeString('en-us',{timeStyle:'short'})}`
     }
     return `${newDate.getDate()} ${newDate.toLocaleString('en-us',{month:'short'})}, ${newDate.getFullYear() } ${newDate.toLocaleTimeString('en-us',{timeStyle:'short'})}`

@@ -1,8 +1,9 @@
+import { writeFileSync } from "fs"
 import { fetchAttachments } from "../../gmail"
 
 export default defineEventHandler(async (event) => {
     try {
-        const {attachmentId,messageId}=getQuery(event)
+        const {attachmentId,messageId,filename}=getQuery(event)
         const res=await fetchAttachments(attachmentId,messageId)
         return res
     } catch (error) {

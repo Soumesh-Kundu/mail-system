@@ -24,7 +24,6 @@ async function makebody(message) {
         textEncoding: 'base64',
     }
     obj.inReplyTo = message.messageId
-    obj.references = message.references
     if (message.references !== undefined) {
         obj.references=message.messageId
     }
@@ -126,7 +125,7 @@ export async function fetchMailById(id){
             date: headers.find(item => item.name === 'Date')?.value ?? "",
         }
         if (parts === undefined && message.payload.body.size > 0) {
-            res.body = { html:`<p>${base64urlToSring(message.payload.body.data)}</p>` }
+            res.body = { html:`<p>${base64urlToSring(message.payload.body.data).replace(/\n/g,'<br>')}</p>` }
             return res
         }
         if (hasAttachments) {

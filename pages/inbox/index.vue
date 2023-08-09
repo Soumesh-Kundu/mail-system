@@ -11,7 +11,6 @@ async function fetchmails() {
     inboxData.value = data.value.mails
     pageToken.value = data.value.pageToken
     isLoading.value=false
-    return {refresh,pending}
 }
 fetchmails()  
 
