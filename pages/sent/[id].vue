@@ -27,7 +27,7 @@
                 </section>
                 <a ref="downloadRef" hidden></a>
                 <section class='px-2 pb-3 md:px-5'>
-                    <h2 class='py-5 text-lg font-bold md:text-2xl'>{{ detailData?.subject }}</h2>
+                    <h2 class='py-5 text-lg font-bold md:text-2xl'>{{ detailData.subject }}</h2>
                     <p v-html="detailData?.body?.html"></p>
                     <br v-if="detailData?.attachments?.length > 0">
                     <span v-if="detailData?.attachments?.length > 0" class="pt-5 font-semibold">attachments:</span>
@@ -97,7 +97,7 @@
                     if (!replyOn) {
                         data.to = detailData.from
                         replyOn = true
-                        replyText(detailData)
+                        replyText({ ...detailData, body: detailData.replyAndForwards.length > 0 ? detailData.replyAndForwards.at(-1).body : detailData.body })
                         return
                     };
                 }"
@@ -144,16 +144,19 @@
 import { ClockIcon, TagIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, ArrowUturnLeftIcon, PaperClipIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import { ArchiveBoxIcon, PaperAirplaneIcon, TrashIcon, FaceSmileIcon, PrinterIcon } from '@heroicons/vue/24/solid'
 import { nanoid } from 'nanoid'
-import {Buffer} from 'buffer'
+import { Buffer } from 'buffer'
 
 const downloadRef = ref(null)
 const id = useRoute().params.id
 const detailData = ref()
 const isLoading = ref(true)
-onMounted(async () => {
+async function fetchMail() {
     const res = await fetch(`/api/messages/${id}`)
     detailData.value = await res.json()
     isLoading.value = false
+}
+onMounted(async () => {
+    fetchMail()
 })
 const replyOn = ref(false)
 const forwardOn = ref(false)
@@ -162,37 +165,37 @@ const emptyData = {
     body: "",
     attachments: []
 }
-async function sendReplyOrForward(sendingObj){
-    const formData=new FormData()
-    formData.append('to',data.value.to)
-    formData.append('subject',detailData.value.subject)
-    formData.append('body',`<div>${data.value.body}</div>`)
-    formData.append('messageId',detailData.value.messageId)
-    for(const file of data.value.attachments){
-        formData.append('file',file,file.filename)
+async function sendReplyOrForward(sendingObj) {
+    const formData = new FormData()
+    formData.append('to', data.value.to)
+    formData.append('subject', detailData.value.subject)
+    formData.append('body', `<div>${data.value.body}</div>`)
+    formData.append('messageId', detailData.value.messageId)
+    for (const file of data.value.attachments) {
+        formData.append('file', file, file.filename)
     }
-    await useFetch(`/api/messages/reply?threadId=${id}`,{
-        method:"POST",
-        body:formData
+    await useFetch(`/api/messages/reply?threadId=${id}`, {
+        method: "POST",
+        body: formData
     })
 }
 function replyText(object) {
-    data.value.body = `\n\n\n\n\nOn ${FormatDate(object.date)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:\n    ${object.body.text.slice(0, 150)}${object.body.text.length < 150 ? "" : "..."}`
+    data.value.body = `<br><br><br><br>On ${FormatDate(object.date, false)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:<br>    </div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">${object.body.html}</blockquote></div>`
     return
 }
 async function downloadFIle(fileObj) {
-    const {data} = await useFetch(`/api/messages/attachment?attachmentId=${fileObj.attachmentId}&messageId=${fileObj.messageId}&filename=${fileObj.filename}`)
+    const { data } = await useFetch(`/api/messages/attachment?attachmentId=${fileObj.attachmentId}&messageId=${fileObj.messageId}&filename=${fileObj.filename}`)
 
-    const Filedata= new Uint8Array(new Buffer.from(data.value.data,'base64'))
-    const file=new File([Filedata],fileObj.filename,{type:fileObj.type})
-    const url=URL.createObjectURL(file)
+    const Filedata = new Uint8Array(new Buffer.from(data.value.data, 'base64'))
+    const file = new File([Filedata], fileObj.filename, { type: fileObj.type })
+    const url = URL.createObjectURL(file)
     downloadRef.value.href = url
-    downloadRef.value.download =fileObj.filename
+    downloadRef.value.download = fileObj.filename
     downloadRef.value.click()
 }
 function forwardText(object) {
-    data.value.body = `write here...\n\n\n\n-------Forwarded Message-------\nFrom: ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}>\nDate: ${FormatDate(object.date)}\nSubject: ${object.subject}\nTo: ${object.to}\n\n
-    ${object.body.text}`
+    data.value.body = `<br><br><br><br>-------Forwarded Message-------<br>From: ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}><br>Date: ${FormatDate(object.date, false)}<br>Subject: ${object.subject}<br>To: ${object.to}<br><br>
+    ${object.body.html}`
     return
 }
 const data = useState('replyData', () => ({ ...emptyData }))

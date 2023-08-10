@@ -85,7 +85,7 @@ export async function fetchMails(options) {
                 id: message.id,
                 to: headers.find(item => /To|to/.test(item.name))?.value ?? "",
                 from: headers.find(item => /from|From/.test(item.name))?.value ?? "",
-                subject: headers.find(item => /Subject|subject/.test(item.name))?.value ?? "",
+                subject: headers.find(item => /Subject|subject/.test(item.name))?.value || "(no subject)",
                 messageId: headers.find(item => /Message-ID|Message-Id/i.test(item.name))?.value ?? "",
                 references: headers.find(item => /References|references/i.test(item.name))?.value ?? "",
                 date: headers.find(item => item.name === 'Date')?.value ?? "",
@@ -119,13 +119,16 @@ export async function fetchMailById(id){
             id: message.id,
             to: headers.find(item => /To|to/.test(item.name))?.value ?? "",
             from: headers.find(item => /from|From/.test(item.name))?.value ?? "",
-            subject: headers.find(item => /Subject|subject/.test(item.name))?.value ?? "",
+            subject: headers.find(item => /Subject|subject/.test(item.name))?.value || "(no subject)",
             messageId: headers.find(item => /Message-ID|Message-Id/i.test(item.name))?.value ?? "",
             references: headers.find(item => /References|references/i.test(item.name))?.value ?? "",
             date: headers.find(item => item.name === 'Date')?.value ?? "",
         }
         if (parts === undefined && message.payload.body.size > 0) {
-            res.body = { html:`<p>${base64urlToSring(message.payload.body.data).replace(/\n/g,'<br>')}</p>` }
+            res.body = { html:`<p>${base64urlToSring(message.payload.body.data)}</p>` }
+            if(!/DOCTYPE|doctype|<html/.test(res.body.html)){
+                res.body.html=res.body.html.replace(/\n/g,'<br>')
+            }
             return res
         }
         if (hasAttachments) {

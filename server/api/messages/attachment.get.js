@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs"
+
 import { fetchAttachments } from "../../gmail"
 
 export default defineEventHandler(async (event) => {

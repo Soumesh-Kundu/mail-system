@@ -35,7 +35,7 @@
                 </li>
                 <li>
                     <NuxtLink data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                        aria-controls="logo-sidebar" type="button" to="/inbox"
+                        aria-controls="logo-sidebar" type="button" to="/inbox" @click="handleIndex"
                         class="flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100 ">
                         <svg aria-hidden="true"
                             class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 "
@@ -48,12 +48,10 @@
                             </path>
                         </svg>
                         <span class="flex-1 ml-3 whitespace-nowrap">Inbox</span>
-                        <span
-                            class="inline-flex items-center justify-center w-3 h-3 p-3 ml-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">3</span>
                     </NuxtLink>
                 </li>
                 <li>
-                    <NuxtLink to="/sent"
+                    <NuxtLink to="/sent" @click="handleIndex('sent')"
                         class="flex items-center w-full gap-3 p-2 text-base font-normal text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 "
                         aria-controls="dropdown-example1" data-collapse-toggle="dropdown-example1">
                         <ArrowUpTrayIcon class="w-6 h-6 text-gray-500" />
@@ -153,6 +151,17 @@
 
 <script setup>
 import { ArrowUpTrayIcon } from '@heroicons/vue/24/solid'
-
-
+let inboxIndex 
+let sentIndex
+onMounted(() => {
+    inboxIndex = useState('inboxPageIndex')
+    sentIndex = useState('sentPageIndex')
+})
+function handleIndex(to){
+    if(to==='sent'){
+        sentIndex._object.$ssentPageIndex=0
+        return
+    }
+    inboxIndex._object.$sinboxPageIndex=0
+}
 </script>

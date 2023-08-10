@@ -65,6 +65,7 @@ import {toast} from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 const valid = ref(true)
+const MailSended=useState('mailSended',()=>false)
 const { sentInbox } = useDummyData()
 const emptyInputs = {
     to: "",
@@ -101,9 +102,12 @@ async function sendMail() {
         method:'POST',
         body:formData,
         onRequest(){
+            if(inputs.value.attachments.length>0){
+                MailSended.value=true
+            }
+            navigateTo('/inbox')
             clearInputs()
             navigateTo('/inbox')
-            toast.info('Sending Mail...')
         },
         onResponse(){
             toast.success('Mail send!')

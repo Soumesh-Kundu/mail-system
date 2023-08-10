@@ -9,6 +9,12 @@ const id = useRoute().params.id
 const isLoading = ref(true)
 let detailData = ref({})
 const downloadRef = ref(null)
+const emptyData = {
+    to: "",
+    body: "",
+    attachments: []
+}
+const data = useState('replyData', () => ({ ...emptyData }))
 
 async function downloadFIle(fileObj) {
     const { data } = await useFetch(`/api/messages/attachment?attachmentId=${fileObj.attachmentId}&messageId=${fileObj.messageId}&filename=${fileObj.filename}`)
@@ -20,52 +26,58 @@ async function downloadFIle(fileObj) {
     downloadRef.value.download = fileObj.filename
     downloadRef.value.click()
 }
-async function sendReplyOrForward() {
+async function sendReplyOrForward(forward = false) {
     const formData = new FormData()
+    console.log(data.value)
     formData.append('to', data.value.to)
-    formData.append('subject', detailData.value.subject)
+    formData.append('subject', forward ? `fwd:${detailData.value.subject}` : detailData.value.subject)
     formData.append('body', `<div>${data.value.body}</div>`)
     formData.append('messageId', detailData.value.messageId)
     for (const file of data.value.attachments) {
         formData.append('file', file, file.filename)
     }
-    await useFetch(`/api/messages/reply?threadId=${id}`, {
+    const res = await fetch(`/api/messages/reply?threadId=${id}`, {
         method: "POST",
         body: formData,
-        onRequest(){
-            clearInputs()
-            toast.info('Sending Reply...')
-        },
-        onResponse(){
-            toast.success('Reply sent')
-        }
+        // onRequest(){
+        //     console.log('request sent')
+        //     clearInputs()
+        //     toast.info('Sending Reply...')
+        // },
+        // onResponse(){
+        //     toast.success('Reply sent')
+        // }
     })
+    clearInputs()
+    if (data.value.attachments.length > 0) {
+        toast.info('Sending Reply...')
+    }
+    const data2 = await res.json()
+    toast.success('Reply sent')
 }
-onMounted(async () => {
+async function fetchMail() {
     const res = await fetch(`/api/messages/${id}`)
     detailData.value = await res.json()
     isLoading.value = false
+}
+onMounted(async () => {
+    fetchMail()
 })
 const replyOn = ref(false)
 const forwardOn = ref(false)
-const emptyData = {
-    to: "",
-    body: "",
-    attachments: []
-}
-const data = useState('replyData', () => ({ ...emptyData }))
+
 
 function replyText(object) {
-    data.value.body = `<br><br><br><br>On ${FormatDate(object.date, false)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:<br>    ${object.body.html}`
+    data.value.body = `<br><br><br><br>On ${FormatDate(object.date, false)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:<br>    </div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">${object.body.html}</blockquote></div>`
     return
 }
 function forwardText(object) {
-    data.value.body = `write here...<br><br><br><br>-------Forwarded Message-------<br>From: ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}><br>Date: ${FormatDate(object.date)}<br>Subject: ${object.subject}<br>To: ${object.to}<br><br>
+    data.value.body = ` <br><br><br><br>-------Forwarded Message-------<br>From: ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}><br>Date: ${FormatDate(object.date, false)}<br>Subject: ${object.subject}<br>To: ${object.to}<br><br>
     ${object.body.html}`
     return
 }
 function clearInputs() {
-    data = { ...emptyData }
+    data.value = { ...emptyData }
     data.attachments = []
 }
 </script>
@@ -103,7 +115,7 @@ function clearInputs() {
                 </section>
                 <a ref="downloadRef" hidden></a>
                 <section class='px-2 pb-3 md:px-5'>
-                    <h2 class='py-5 text-lg font-bold'>{{ detailData?.subject }}</h2>
+                    <h2 class='py-5 text-lg font-bold'>{{ detailData.subject }}</h2>
                     <p v-html="detailData?.body?.html"></p>
                     <br v-if="detailData?.attachments?.length > 0">
                     <span v-if="detailData?.attachments?.length > 0" class="font-semibold">attachments:</span>
@@ -122,19 +134,16 @@ function clearInputs() {
             <div v-for="(item, index) in detailData?.replyAndForwards" :key="index"
                 :class="{ 'bg-gray-100': (index + 1) % 2 === 0, 'bg-white': (index + 1) % 2 !== 0 }">
                 <section class='flex items-center gap-2 pt-3 mx-2 md:mx-5'>
-                    <img class="w-8 h-8 mr-1 rounded-full" :src="item.image" alt="Rounded avatar" />
                     <div>
-                        <p class='font-bold'>{{ item.name }}</p>
-                        <p class='text-gray-600'>{{ item.from }}</p>
+                        <p class='font-bold text-black'>{{ item?.from?.split(/<|>/)[0] }} <span
+                                    class="text-sm text-gray-600">&lt;{{ item?.from?.split(/<|>/)[1] }}&gt;</span></p>
+                        <p>to <span class="font-semibold">{{ item?.to === 'iamsoumo26@gmail.com' ? 'me' :
+                            item?.to
+                        }}</span></p>
                     </div>
                 </section>
                 <section class='px-2 py-3 md:px-5'>
-                    <p class='text-gray-800 ' v-for="(para, index) in item.body.split('\n')" :key="index">
-                        <span v-if="para.length">{{ para }}</span>
-                        <span v-else>
-                            <br>
-                        </span>
-                    </p>
+                    <div v-html="item.body.html"></div>
                     <br v-if="item?.attachments?.length > 0">
                     <span v-if="item?.attachments?.length > 0" class="font-semibold">attachments:</span>
                     <div v-if="item?.attachments?.length > 0" class="flex flex-wrap gap-3 mt-5">
@@ -157,7 +166,12 @@ function clearInputs() {
                 class="absolute top-0 left-0 -translate-y-full" />
             <div class='flex items-center w-full px-2 py-3 border-y md:px-5'>
                 <button v-if="replyOn || forwardOn" type="button" @click="() => {
-                    sendReplyOrForward(data)
+                    if (forwardOn) {
+                        sendReplyOrForward(true)
+                    }
+                    else {
+                        sendReplyOrForward()
+                    }
                     if (replyOn) replyOn = false
                     if (forwardOn) forwardOn = false
                     return
@@ -169,10 +183,11 @@ function clearInputs() {
                     </div>
                 </button>
                 <button v-else type="button" @click="() => {
+                    const from = detailData.replyAndForwards.length > 0 ? detailData.replyAndForwards.at(-1).from : detailData.from
                     if (!replyOn) {
-                        data.to = detailData.from
+                        data.to = from.split(/<|>/).length > 1 ? from.split(/<|>/)[1] : from.split(/<|>/)[0]
                         replyOn = true
-                        replyText(detailData)
+                        replyText({ ...detailData, body: detailData.replyAndForwards.length > 0 ? detailData.replyAndForwards.at(-1).body : detailData.body })
                         return
                     };
                 }"
@@ -195,7 +210,7 @@ function clearInputs() {
                             return replyOn = false
                         }
                         if (forwardOn) return forwardOn = false
-                        forwardText(detailData)
+                        forwardText({ ...detailData, body: detailData.replyAndForwards.length > 0 ? detailData.replyAndForwards.at(-1).body : detailData.body })
                         forwardOn = true
                     }">
                     <div v-if="replyOn || forwardOn" class="flex items-center gap-2">

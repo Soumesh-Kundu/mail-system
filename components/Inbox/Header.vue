@@ -1,6 +1,6 @@
 <template>
     <nav
-        class="fixed top-0 left-0  z-20 flex items-center justify-between w-[80%] max-w-screen-2xl mx-auto py-3 md:ml-64 bg-white ">
+        class="fixed top-0 left-0  z-20 flex items-center justify-between w-[calc(100%-16rem)] mx-auto py-3 md:ml-64 bg-white ">
         <div class="flex gap-2 items-center md:w-4/12 ml-3.5 ">
             <div class="flex items-center">
                 <input id="checkbox-table-search-1" type="checkbox"
@@ -20,8 +20,17 @@
                 <PlusIcon class="w-5 h-5 mr-2" />
                 Compose
             </NuxtLink>
-            <button type='button' class="p-2 duration-200 rounded-full hover:bg-slate-300" @click="refresh">
+            <button type='button' class="p-2 duration-200 rounded-full hover:bg-slate-300" @click="refresh" title="refresh">
                 <ArrowPathIcon class="w-5 h-5" />
+            </button>
+        </div>
+        <div class="flex gap-2 px-5 py-3 item-center">
+            <button type="button" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail(e,true)">
+                <ChevronLeftIcon class="w-6 h-6 text-gray-600" />
+            </button>
+            <p class="flex whitespace-nowrap">Show {{ (currentPage*25)+1 }} - {{ (currentPage+1)*25 }}</p>
+            <button type="button" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail">
+                <ChevronRightIcon class="w-6 h-6 text-gray-600" />
             </button>
         </div>
     </nav>
@@ -31,7 +40,7 @@
 import { TrashIcon, ArchiveBoxIcon } from '@heroicons/vue/24/solid';
 import { ExclamationCircleIcon, EllipsisVerticalIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 
-const { refresh } = defineProps(['refresh'])
+const { refresh,nextOrPrevMail,currentPage } = defineProps(['refresh','nextOrPrevMail','currentPage'])
 
 const deletingIndexes = useState('deleteIndex')
 const buttonRef = ref(null)

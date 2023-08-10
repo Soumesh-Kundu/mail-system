@@ -2,12 +2,11 @@ import { fetchMails } from "../../gmail"
 
 export default defineEventHandler(async (event)=>{
     try {
-        console.log('hited')
         const {pageToken,type}=getQuery(event)
         const options={
             userId:'me',
             labelIds:[type],
-            maxResults:15,
+            maxResults:25,
         }
         if(type==='INBOX'){
            options.q='category:primary'

@@ -2,6 +2,7 @@ import { replyMail } from "../../gmail"
 
 export default defineEventHandler(async (event) => {
     try {
+        console.log('reply hit')
         const body=await readMultipartFormData(event)
         const {threadId}=getQuery(event)
         const requestObj=body.reduce((acc,item)=>{

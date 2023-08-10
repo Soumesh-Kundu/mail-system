@@ -2,12 +2,12 @@
     <div class="flex flex-col justify-center w-full bg-white ">
         <div
             class="flex items-center gap-1 md:gap-2  md:mx-5 px-5 mt-2 py-0.5 mb-2 border border-gray-200 rounded-lg bg-gray-50 md:px-5 ">
-            to <input v-model="inputs.to" :disabled="replyOn" ref="emailRef"
+            to <input v-model="inputs.to" ref="emailRef"
                 class=" bg-inherit text-gray-900 text-sm  focus:outline-transparent   block w-full p-2.5 outline-none font-semibold"
                 placeholder="john.doe@company.com" />
         </div>
         <div class="px-2 mb-2 md:px-5">
-            <div contenteditable rows="13" v-html="inputs.body" ref="TextRef" @input="getBody"
+            <div contenteditable rows="13" v-html="body" ref="TextRef" @input="getBody"
                 class="  text-gray-900 text-sm h-80 overflow-y-auto border focus:outline-0 rounded-lg block w-full p-2.5 "
                 placeholder="body ..." />
 
@@ -32,8 +32,12 @@
 import { CodeBracketIcon, DocumentIcon, DocumentTextIcon, PhotoIcon,XMarkIcon } from '@heroicons/vue/24/outline';
 const {replyOn,forwardOn}=defineProps(['replyOn','forwardOn'])
 const inputs = useState('replyData')
+const body=inputs.value.body
 const emailRef=ref(null)
 onMounted(()=>{
+    if(replyOn){
+        emailRef.value.focus()
+    }
     if(forwardOn){
         emailRef.value.focus()
     }
