@@ -7,15 +7,18 @@ const { inboxData } = useDummyData()
 const deletingIndexes = useState('deleteIndex')
 const currentPageIndex = useState('inboxPageIndex', () => 0)
 const pageTokens = useState('inboxToken', () => new Set([null]))
-console.log(currentPageIndex)
 const MailSended = useState('mailSended')
 deletingIndexes.value = []
 const isLoading = ref(false)
-async function fetchmails(token = undefined) {
+async function fetchmails() {
     isLoading.value = true
     let data
     if (currentPageIndex.value === 0) {
-        data = await useFetch('/api/messages?type=INBOX');
+        data = await useFetch('/api/messages?type=INBOX',{
+            headers:{
+                // authToken:sessionStorage.getItem('authToken')
+            }
+        })
     }
     else {
         const token = Array.from(pageTokens.value)[currentPageIndex.value]
@@ -97,7 +100,7 @@ async function deleteMails() {
     <h2
         class="fixed top-0 left-0 z-40 w-full px-5 py-1.5 md:ml-64 text-2xl font-bold bg-white mt-14 border-b border-b-gray-200">
         Inbox</h2>
-    <div v-if="inboxData.length > 0 && !isLoading" class="relative mt-24 overflow-x-auto shadow-md sm:rounded-lg">
+    <div v-if="inboxData?.length > 0 && !isLoading" class="relative mt-24 overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-left ">
             <tbody>
                 <td v-for="(item, index) in inboxData" :key="item.threadId"
@@ -120,7 +123,7 @@ async function deleteMails() {
             </tbody>
         </table>
     </div>
-    <div v-if="!isLoading && inboxData.length < 1"
+    <div v-if="!isLoading && inboxData?.length < 1"
         class="max-w-sm mx-auto my-10 mt-24 text-3xl font-semibold text-gray-500">
         <h3>No mail yet</h3>
     </div>

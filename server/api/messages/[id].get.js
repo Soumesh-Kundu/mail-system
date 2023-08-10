@@ -5,7 +5,7 @@ export default defineEventHandler(async (event)=>{
         const id=event.context.params.id
         const res=await fetchMailById(id)
         return res
-        
+
     } catch (error) {
         console.log(error)
         setResponseStatus(event,500)

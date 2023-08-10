@@ -2,17 +2,24 @@ import google from '@googleapis/gmail'
 import Credentials from './credentials.json' assert {type: "json"}
 import token from './token.json' assert {type: "json"}
 import MailComposer from 'nodemailer/lib/mail-composer'
-
+const redirect_uris=[`${useRuntimeConfig().baseUrl}/callback`]
 const { refresh_token } = token
+let gmail
+const { client_id, client_secret, redirect_uris:uris } = Credentials.web
+function gmailInitiater(creds){
+    const { client_id, client_secret, redirect_uris,refresh_token } = creds
+    const OAUTH2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
+    OAUTH2Client.setCredentials({ refresh_token })
+    const gmail = google.gmail({
+        version: 'v1',
+        auth: OAUTH2Client
+    })
+    return gmail
+}
 
-const { client_id, client_secret, redirect_uris } = Credentials.web
-const OAUTH2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-OAUTH2Client.setCredentials({ refresh_token })
-const gmail = google.gmail({
-    version: 'v1',
-    auth: OAUTH2Client
+gmail=gmailInitiater({
+    client_id,client_secret,refresh_token,redirect_uris
 })
-
 
 async function makebody(message) {
     const obj = {
@@ -40,7 +47,8 @@ async function makebody(message) {
     return raw
 }
 
-export async function sendMail(message) {
+export async function sendMail(message,creds) {
+    const gmailComp=gmailInitiater(creds)
     const raw = await makebody(message)
     const { data: { id } } = await gmail.users.messages.send({
         userId: 'me',
@@ -50,7 +58,8 @@ export async function sendMail(message) {
     })
     console.log(id)
 }
-export async function replyMail(message, threadId) {
+export async function replyMail(message, threadId,creds) {
+    const gmailComp=gmailInitiater(creds)
     const raw = await makebody(message)
     const { data: { id } } = await gmail.users.messages.send({
         userId: 'me',
@@ -62,14 +71,16 @@ export async function replyMail(message, threadId) {
     console.log(id)
 }
 
-export async function deleteThread(threadId) {
+export async function deleteThread(threadId,creds) {
+    const gmailComp=gmailInitiater(creds)
     const data = await gmail.users.threads.delete({
         userId: 'me',
         id: threadId
     })
     console.log(data.data)
 }
-export async function fetchMails(options) {
+export async function fetchMails(options,creds) {
+    const gmailComp=gmailInitiater(creds)
     const data = await gmail.users.messages.list(options)
     const messagesIds = data.data.messages
     const uniqueThreadIDs = Array.from(new Set(messagesIds.map(item => item.threadId)))
@@ -100,7 +111,8 @@ export async function fetchMails(options) {
 }
 
 
-export async function fetchMailById(id){
+export async function fetchMailById(id,creds){
+    const gmailComp=gmailInitiater(creds)
     const res = await gmail.users.threads.get({
         userId: 'me',
         id,
@@ -155,7 +167,8 @@ export async function fetchMailById(id){
     const initialMessage = messages[0]
     return { ...initialMessage, replyAndForwards: messages.slice(1), threadId: id }
 }
-export async function fetchAttachments(attachmentId, messageId) {
+export async function fetchAttachments(attachmentId, messageId,creds) {
+    const gmailComp=gmailInitiater(creds)
     const res = await gmail.users.messages.attachments.get({
         id: attachmentId, messageId, userId: 'me'
     })
@@ -167,4 +180,27 @@ function base64urlToSring(str){
         return str
     }
     return new Buffer.from(str,'base64url').toString('ascii')
+}
+
+export function getAuthUrl(client_id,client_secret){
+    const OAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
+    const url = OAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        prompt: 'consent',
+        scope:['https://mail.google.com/']
+    })
+    return url
+}
+
+export async function getToken({client_id,client_secret,code}){
+    const OAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
+    const {tokens:{refresh_token}}=await OAuth2Client.getToken(code);
+    return refresh_token
+}
+export async function getProfile(creds){
+    const gmailComp=gmailInitiater(creds)
+    const {data}= await gmailComp.users.getProfile({
+        userId:'me'
+    })
+    return data
 }

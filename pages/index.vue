@@ -1,34 +1,59 @@
 <script setup>
 
+const data=ref({
+  name:"Soumesh Kundu",
+  email:"iamsoumo26@gmail.com",
+  client_id:"1004406759218-6mdclca7g97eigbm0cb8kjoj6m7j5pvr.apps.googleusercontent.com",
+  client_secret:"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",
+})
+async function auth() {
+  sessionStorage.setItem('email',data.value.email)
+  const { data:res } = await useFetch('/api/auth', {
+    method: "POST",
+    body: {
+      ...data.value
+    }
+  })
+  window.location.href = res.value
+}
 </script>
 <template>
-  <section class="bg-white">
-    <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-      <div class="md:hidden lg:mt-0 lg:col-span-5">
-        <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/phone-mockup.png" alt="mockup">
+  <section class="flex flex-col items-center justify-center w-full h-full gap-2 bg-white">
+    <form class="w-full max-w-md" @submit.prevent="auth">
+      <div class="mb-6">
+        <div class="mb-6">
+          <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
+          <input type="text" id="password" v-model="data.name"
+            class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            >
+        </div>
+        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 "> Email</label>
+        <input type="email" id="email" v-model="data.email"
+          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          placeholder="name@flowbite.com" >
       </div>
-      <div class="mr-auto place-self-center lg:col-span-7">
-        <h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl">
-          Payments tool for software companies</h1>
-        <p class="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl">From checkout
-          to global sales tax compliance, companies around the world use Qualyval to simplify their payment stack.</p>
-        <a href="#"
-          class="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300">
-          Get started
-          <svg class="w-5 h-5 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd"
-              d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-              clip-rule="evenodd"></path>
-          </svg>
-        </a>
-        <a href="#"
-          class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-100">
-          Speak to Sales
-        </a>
+      <div class="mb-6">
+        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Client Id</label>
+        <input type="text" id="password" v-model="data.client_id"
+          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
       </div>
-      <div class="hidden lg:mt-0 lg:col-span-5 md:flex">
-        <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/phone-mockup.png" alt="mockup">
+      <div class="mb-6">
+        <label for="repeat-password" class="block mb-2 text-sm font-medium text-gray-900 ">Client secret</label>
+        <input type="password" id="repeat-password" v-model="data.client_secret"
+          class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
       </div>
-    </div>
+      <!-- <div class="flex items-start mb-6">
+        <div class="flex items-center h-5">
+          <input id="terms" type="checkbox" value=""
+            class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 " >
+        </div>
+        <label for="terms" class="ml-2 text-sm font-medium text-gray-900 ">I agree with the <a href="#"
+            class="text-blue-600 hover:underline ">terms and conditions</a></label>
+      </div> -->
+      <button type="submit"
+        class="text-white bg-green-500 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-cente">Authorize</button>
+    </form>
   </section>
 </template>

@@ -3,7 +3,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules:['@nuxtjs/tailwindcss'],
   runtimeConfig:{
-    personalEmail:'',
-    personalName:''
+    appId:"",
+    baseUrl:"",
+    serverApiKey:"",
+    db:"",
+    collection:"",
+    jwtSecret:"",
   }
 })
