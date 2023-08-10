@@ -23,6 +23,9 @@
                     <div>
                         <p class='font-bold text-black'>{{ detailData?.from?.split(/<|>/)[0] }} <span
                                     class="text-sm text-gray-600">&lt;{{ detailData?.from?.split(/<|>/)[1] }}&gt;</span></p>
+                        <p>to <span class="font-semibold">{{ detailData?.to === 'iamsoumo26@gmail.com' ? 'me' :
+                            detailData?.to
+                        }}</span></p>
                     </div>
                 </section>
                 <a ref="downloadRef" hidden></a>
@@ -49,6 +52,9 @@
                     <div>
                         <p class='font-bold'>{{ item.from.split(/<|>/)[0] }} <span class="text-sm text-gray-600">&lt;{{
                             item.from.split(/<|>/)[1] }}&gt;</span></p>
+                        <p>to <span class="font-semibold">{{ item?.to === 'iamsoumo26@gmail.com' ? 'me' :
+                            item?.to
+                        }}</span></p>
                     </div>
                 </section>
                 <section class='px-2 py-3 md:px-5'>
@@ -77,12 +83,12 @@
                 class="absolute top-0 left-0 -translate-y-full" />
             <div class='flex items-center w-full px-2 py-3 border-y md:px-5'>
                 <button v-if="replyOn || forwardOn" type="button" @click="() => {
-                    const replyOrForward = {
-                        ...data, name: 'Test user', from: 'test@gmail.com', id: nanoid(), image: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
+                    if (forwardOn) {
+                        sendReplyOrForward(true)
                     }
-                    detailData.replyAndForwards.push(replyOrForward)
-                    data = { ...emptyData }
-                    data.attachments = []
+                    else {
+                        sendReplyOrForward()
+                    }
                     if (replyOn) replyOn = false
                     if (forwardOn) forwardOn = false
                     return
@@ -117,7 +123,7 @@
                         }
                         if (replyOn) return replyOn = false
                         if (forwardOn) return forwardOn = false
-                        forwardText(detailData)
+                        forwardText({ ...detailData, body: detailData.replyAndForwards.length > 0 ? detailData.replyAndForwards.at(-1).body : detailData.body })
                         forwardOn = true
                     }">
                     <div v-if="replyOn || forwardOn" class="flex items-center gap-2">
@@ -145,6 +151,8 @@ import { ClockIcon, TagIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRigh
 import { ArchiveBoxIcon, PaperAirplaneIcon, TrashIcon, FaceSmileIcon, PrinterIcon } from '@heroicons/vue/24/solid'
 import { nanoid } from 'nanoid'
 import { Buffer } from 'buffer'
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css'
 
 const downloadRef = ref(null)
 const id = useRoute().params.id
@@ -165,19 +173,28 @@ const emptyData = {
     body: "",
     attachments: []
 }
-async function sendReplyOrForward(sendingObj) {
+async function sendReplyOrForward(forward) {
     const formData = new FormData()
+    console.log(data.value)
     formData.append('to', data.value.to)
-    formData.append('subject', detailData.value.subject)
+    formData.append('subject', forward ? `fwd:${detailData.value.subject}` : detailData.value.subject)
     formData.append('body', `<div>${data.value.body}</div>`)
     formData.append('messageId', detailData.value.messageId)
     for (const file of data.value.attachments) {
         formData.append('file', file, file.filename)
     }
-    await useFetch(`/api/messages/reply?threadId=${id}`, {
+    const res = await fetch(`/api/messages/reply?threadId=${id}`, {
         method: "POST",
-        body: formData
+        body: formData,
     })
+    clearInputs()
+    if (data.value.attachments.length > 0) {
+        toast.info('Sending Reply...')
+    }
+    const data2 = await res.json()
+    toast.success('Reply sent')
+    isLoading.value = true
+    await fetchMail()
 }
 function replyText(object) {
     data.value.body = `<br><br><br><br>On ${FormatDate(object.date, false)} ${object.from.split(/<|>/)[0]} <${object.from.split(/<|>/)[1]}> wrote:<br>    </div><blockquote class=\"gmail_quote\" style=\"margin:0px 0px 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex\">${object.body.html}</blockquote></div>`

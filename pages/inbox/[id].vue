@@ -1,7 +1,7 @@
 <script setup>
 import { ClockIcon, TagIcon, ExclamationCircleIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, ArrowUturnLeftIcon, PaperClipIcon } from '@heroicons/vue/24/outline'
 import { ArchiveBoxIcon, PaperAirplaneIcon, TrashIcon, FaceSmileIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/solid'
-import { nanoid } from 'nanoid'
+import { Buffer } from 'buffer'
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css'
 
@@ -39,14 +39,6 @@ async function sendReplyOrForward(forward = false) {
     const res = await fetch(`/api/messages/reply?threadId=${id}`, {
         method: "POST",
         body: formData,
-        // onRequest(){
-        //     console.log('request sent')
-        //     clearInputs()
-        //     toast.info('Sending Reply...')
-        // },
-        // onResponse(){
-        //     toast.success('Reply sent')
-        // }
     })
     clearInputs()
     if (data.value.attachments.length > 0) {
@@ -54,6 +46,8 @@ async function sendReplyOrForward(forward = false) {
     }
     const data2 = await res.json()
     toast.success('Reply sent')
+    isLoading.value=true
+    await fetchMail()
 }
 async function fetchMail() {
     const res = await fetch(`/api/messages/${id}`)
@@ -122,11 +116,11 @@ function clearInputs() {
                     <div v-if="detailData?.attachments?.length > 0" class="flex flex-wrap gap-3 mt-5">
                         <div class="flex items-center gap-2 px-2 py-1 bg-gray-300 rounded-full"
                             v-for="(file, index) in detailData?.attachments" :key="index">
-                            <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.name }}
-                            <a @click.prevent="getFileUrl({ ...file, messageId: detailData.messageId })"
+                            <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.filename }}
+                            <button @click="downloadFIle({ ...file, messageId: detailData.messageId })"
                                 class="p-1.5 rounded-full hover:bg-white duration-200">
                                 <ArrowDownTrayIcon class="w-4 h-4" />
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -149,10 +143,11 @@ function clearInputs() {
                     <div v-if="item?.attachments?.length > 0" class="flex flex-wrap gap-3 mt-5">
                         <div class="flex items-center gap-2 px-2 py-1 bg-gray-300 rounded-full"
                             v-for="(file, index) in item.attachments" :key="index">
-                            <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.name }}
-                            <a :download="file.filename" class="p-1.5 rounded-full hover:bg-white duration-200">
+                            <component :is="iconMap.get(typeFinder(file.type))" class="w-5 h-5" /> {{ file.filename }}
+                            <button @click="downloadFIle({ ...file, messageId: detailData.messageId })"
+                                class="p-1.5 rounded-full hover:bg-white duration-200">
                                 <ArrowDownTrayIcon class="w-4 h-4" />
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -206,7 +201,6 @@ function clearInputs() {
                             data.attachments = []
                         }
                         if (replyOn) {
-                            console.log('hello')
                             return replyOn = false
                         }
                         if (forwardOn) return forwardOn = false
