@@ -112,9 +112,8 @@ async function auth() {
       </div>
       <h3 :class="{ 'invisible': url.length === 0 }" class="mt-4 text-lg font-semibold">Note:</h3>
       <p :class="{ 'invisible': url.length === 0 }">
-        put this <span class="font-bold">{{ url }}</span> and <span class="font-bold">{{ `${url}/callback` }}</span> in
-        OAuth Credentials <span class="font-semibold">Origin</span> and <span class="font-semibold">Redirect URI</span>
-        respectivly
+        put this <span class="font-bold">{{ `${url}/callback` }}</span> in
+        OAuth Credentials  <span class="font-semibold">Redirect URI</span>.
       </p>
     </form>
   </section>
