@@ -19,6 +19,6 @@ export async function getServerUser() {
     const credentials = Realm.Credentials.apiKey(useRuntimeConfig().serverApiKey)
     const user = await app.logIn(credentials)
     console.log('from server user')
-    return
+    return user
 }
 // getServerUser()
