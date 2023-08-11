@@ -3,9 +3,23 @@ import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
 const isLoading = ref(false)
-const url=ref("")
+const valid = ref(true)
+const url = ref("")
+function onBlurEmail(e) {
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+  if (!e.target.value.length) {
+    valid.value = true
+    return
+  }
+  if (!emailRegex.test(e.target.value)) {
+    valid.value = false
+    return
+  }
+  valid.value = true
+  return
+}
 onMounted(() => {
-  url.value=`${window.location.protocol}//${window.location.hostname}`
+  url.value = `${window.location.protocol}//${window.location.hostname}`
   const error = useRoute().query.error
   if (error && error === '401') {
     toast.error('Unauthorized')
@@ -17,7 +31,26 @@ const data = ref({
   client_id: "",
   client_secret: "",
 })
+const someEmpty = ref(false)
+function isObjEmpty(obj) {
+  for (const value of Object.values(obj)) {
+    if (value.length < 1) {
+      someEmpty.value = true
+      return
+    }
+  }
+}
+function clearEmpty() {
+  someEmpty.value = false
+}
 async function auth() {
+  if (!valid.value) {
+    return
+  }
+  isObjEmpty(data.value)
+  if (someEmpty.value) {
+    return
+  }
   isLoading.value = true
   sessionStorage.setItem('email', data.value.email)
   const { data: res } = await useFetch('/api/auth', {
@@ -34,28 +67,34 @@ async function auth() {
   <section class="flex flex-col items-center justify-center w-full h-full gap-2 bg-white">
     <h2 class="text-2xl font-semibold">Authorize Yourself</h2>
     <form class="w-full max-w-md" @submit.prevent="auth">
-      <div class="mb-6">
+      <div class="mb-3">
         <div class="mb-6">
           <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Name</label>
-          <input type="text" id="password" v-model="data.name"
+          <input type="text" id="password" v-model="data.name" @change="clearEmpty"
             class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
         </div>
         <label for="email" class="block mb-2 text-sm font-medium text-gray-900 "> Email</label>
-        <input type="email" id="email" v-model="data.email"
+        <input type="email" id="email" v-model="data.email" @blur="onBlurEmail" :class="{ '!border-red-500': !valid }"
+          @change="clearEmpty"
           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-          placeholder="name@flowbite.com">
+          placeholder="name@company.com">
+        <span class="text-sm font-medium text-red-500" :class="{ 'visible': !valid, 'invisible': valid }">Email is
+          not
+          valid</span>
       </div>
-      <div class="mb-6">
+      <div class="mt-3 mb-6">
         <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Client Id</label>
-        <input type="text" id="password" v-model="data.client_id"
+        <input type="text" id="password" v-model="data.client_id" @change="clearEmpty"
           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
       </div>
-      <div class="mb-6">
+      <div class="mb-2">
         <label for="repeat-password" class="block mb-2 text-sm font-medium text-gray-900 ">Client secret</label>
-        <input type="password" id="repeat-password" v-model="data.client_secret"
+        <input type="password" id="repeat-password" v-model="data.client_secret" @change="clearEmpty"
           class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
       </div>
-      <div class="flex items-center gap-3">
+      <span class="text-sm font-medium text-red-500 " :class="{ 'visible': someEmpty, 'invisible': !someEmpty }">Every
+        field needs to be filled</span>
+      <div class="flex items-center gap-3 mt-2">
         <button type="submit" :disabled="isLoading"
           class="text-white bg-green-500 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Authorize</button>
         <div v-if="isLoading" role="status">
@@ -71,9 +110,11 @@ async function auth() {
           <span class="sr-only">Loading...</span>
         </div>
       </div>
-      <h3 :class="{'invisible':url.length===0}" class="mt-4 text-lg font-semibold">Note:</h3>
-      <p :class="{'invisible':url.length===0}">
-        put this <span class="font-bold">{{ url }}</span> and <span class="font-bold">{{ `${url}/callback` }}</span> in OAuth Credentials <span class="font-semibold">Origin</span> and <span class="font-semibold">Redirect URI</span> respectivly
+      <h3 :class="{ 'invisible': url.length === 0 }" class="mt-4 text-lg font-semibold">Note:</h3>
+      <p :class="{ 'invisible': url.length === 0 }">
+        put this <span class="font-bold">{{ url }}</span> and <span class="font-bold">{{ `${url}/callback` }}</span> in
+        OAuth Credentials <span class="font-semibold">Origin</span> and <span class="font-semibold">Redirect URI</span>
+        respectivly
       </p>
     </form>
   </section>
