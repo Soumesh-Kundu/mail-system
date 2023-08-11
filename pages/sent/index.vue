@@ -40,6 +40,7 @@ import { StarIcon } from '@heroicons/vue/24/outline';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css'
 
+const router=useRouter()
 const { sentInbox: sentBox } = useDummyData()
 const deletingIndexes = useState('deleteIndex')
 const currentPageIndex = useState('sentPageIndex', () => 0)
@@ -50,7 +51,18 @@ async function fetchmails() {
     isLoading.value = true
     let data
     if (currentPageIndex.value === 0) {
-        data = await useFetch('/api/messages?type=SENT');
+        data = await useFetch('/api/messages?type=SENT', {
+            onResponseError({ response }) {
+                if (response.status === 401) {
+                    router.push({
+                        path: '/',
+                        query: {
+                            error: 401
+                        }
+                    })
+                }
+            }
+        });
     }
     else {
         const token = Array.from(pageTokens.value)[currentPageIndex.value]
@@ -66,7 +78,7 @@ async function fetchmails() {
     }
     isLoading.value = false
 }
-fetchmails()    
+fetchmails()
 function addIndexToModify(id) {
     if (deletingIndexes.value.includes(id)) {
         deletingIndexes.value = deletingIndexes.value.filter(item => item !== id)

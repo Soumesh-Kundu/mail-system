@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline';
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
+const router = useRouter()
 const { inboxData } = useDummyData()
 const deletingIndexes = useState('deleteIndex')
 const currentPageIndex = useState('inboxPageIndex', () => 0)
@@ -14,9 +15,16 @@ async function fetchmails() {
     isLoading.value = true
     let data
     if (currentPageIndex.value === 0) {
-        data = await useFetch('/api/messages?type=INBOX',{
-            headers:{
-                // authToken:sessionStorage.getItem('authToken')
+        data = await useFetch('/api/messages?type=INBOX', {
+            onResponseError({ response }) {
+                if (response.status === 401) {
+                    router.push({
+                        path: '/',
+                        query: {
+                            error: 401
+                        }
+                    })
+                }
             }
         })
     }

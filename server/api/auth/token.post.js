@@ -5,7 +5,7 @@ import JWT from 'jsonwebtoken'
 export default defineEventHandler( async (event)=>{
     try {
         const {mongo}=useRealm()
-        const userCollection=mongo.db(useRuntimeConfig().db).collection(useRuntimeConfig().collection)
+        const userCollection=mongo
         const {code}=getQuery(event)
         const {email}=await readBody(event)
         const {_id,client_id,client_secret}=await userCollection.findOne({email})

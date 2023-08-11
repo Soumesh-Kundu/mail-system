@@ -1,9 +1,16 @@
 import { deleteThread } from "../../gmail"
+import { useRealm } from "../../realm"
+import {ObjectID} from 'bson'
 
 export default defineEventHandler(async (event) => {
     try {
+        const {mongo}=useRealm()
+        const userCollection=mongo
         const threadId = event.context.params.id
-        await deleteThread(threadId)
+        const id=event.context.user
+        const {client_id,client_secret,refresh_token}=await userCollection.findOne({_id:ObjectID(id)})
+        const creds={client_id,client_secret,refresh_token}
+        await deleteThread(threadId,creds)
         return { message:"deleted" }
     } catch (error) {
         console.log(error)

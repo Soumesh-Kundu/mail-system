@@ -15,7 +15,7 @@
 
             <ExclamationCircleIcon class="w-6 h-6 text-red-500" />
             <EllipsisVerticalIcon class="w-6 h-6 text-gray-800" />
-            <NuxtLink to="/inbox/new" type="button"
+            <NuxtLink to="/inbox/new" type="button" :disabled="disabled"
                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 flex items-center cursor-pointer">
                 <PlusIcon class="w-5 h-5 mr-2" />
                 Compose
@@ -25,11 +25,11 @@
             </button>
         </div>
         <div class="flex gap-2 px-5 py-3 item-center">
-            <button type="button" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail(e,true)">
+            <button type="button" :disabled="disabled" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail(e,true)">
                 <ChevronLeftIcon class="w-6 h-6 text-gray-600" />
             </button>
             <p class="flex whitespace-nowrap">Show {{ (currentPage*25)+1 }} - {{ (currentPage+1)*25 }}</p>
-            <button type="button" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail">
+            <button type="button" :disabled="disabled" class="duration-200 rounded-full hover:bg-slate-200" @click="nextOrPrevMail">
                 <ChevronRightIcon class="w-6 h-6 text-gray-600" />
             </button>
         </div>
@@ -40,7 +40,7 @@
 import { TrashIcon, ArchiveBoxIcon } from '@heroicons/vue/24/solid';
 import { ExclamationCircleIcon, EllipsisVerticalIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 
-const { refresh,nextOrPrevMail,currentPage } = defineProps(['refresh','nextOrPrevMail','currentPage'])
+const { refresh,nextOrPrevMail,currentPage,disabled } = defineProps(['refresh','nextOrPrevMail','currentPage','disabled'])
 
 const deletingIndexes = useState('deleteIndex')
 const buttonRef = ref(null)

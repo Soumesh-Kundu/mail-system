@@ -1,8 +1,12 @@
 import { replyMail } from "../../gmail"
+import { useRealm } from "../../realm"
+import {ObjectID} from 'bson'
 
 export default defineEventHandler(async (event) => {
-    try {
-        console.log('reply hit')
+    try {   
+        const id=event.context.user
+        const {mongo}=useRealm()
+        const userCollection=mongo
         const body=await readMultipartFormData(event)
         const {threadId}=getQuery(event)
         const requestObj=body.reduce((acc,item)=>{
@@ -19,11 +23,13 @@ export default defineEventHandler(async (event) => {
                 content:new Buffer.from(item.data).toString('base64url')
             }
         })
+        const {client_id,client_secret,refresh_token,name,email}=await userCollection.findOne({_id:ObjectID(id)})
+        const creds={client_id,client_secret,refresh_token}
         requestObj.from={
-            name:"Soumesh Kundu",
-            email:"iamsoumo26@gmail.com"
+            name,
+            email
         }
-        await replyMail(requestObj,threadId)
+        await replyMail(requestObj,threadId,creds)
         return {
             message:'sent'
         }

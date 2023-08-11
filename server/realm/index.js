@@ -6,7 +6,7 @@ export function useRealm() {
     });
     let mongo = null;
     if (app?.currentUser) {
-        mongo = app.currentUser.mongoClient('mongodb-atlas');
+        mongo = app.currentUser.mongoClient('mongodb-atlas').db(useRuntimeConfig().db).collection(useRuntimeConfig().collection);
     }
     return {
         app,

@@ -1,14 +1,10 @@
 import google from '@googleapis/gmail'
-import Credentials from './credentials.json' assert {type: "json"}
-import token from './token.json' assert {type: "json"}
 import MailComposer from 'nodemailer/lib/mail-composer'
 const redirect_uris=[`${useRuntimeConfig().baseUrl}/callback`]
-const { refresh_token } = token
-let gmail
-const { client_id, client_secret, redirect_uris:uris } = Credentials.web
+
 function gmailInitiater(creds){
-    const { client_id, client_secret, redirect_uris,refresh_token } = creds
-    const OAUTH2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
+    const { client_id, client_secret,refresh_token } = creds
+    const OAUTH2Client = new google.auth.OAuth2(client_id, client_secret,redirect_uris[0])
     OAUTH2Client.setCredentials({ refresh_token })
     const gmail = google.gmail({
         version: 'v1',
@@ -16,10 +12,6 @@ function gmailInitiater(creds){
     })
     return gmail
 }
-
-gmail=gmailInitiater({
-    client_id,client_secret,refresh_token,redirect_uris
-})
 
 async function makebody(message) {
     const obj = {
@@ -48,7 +40,7 @@ async function makebody(message) {
 }
 
 export async function sendMail(message,creds) {
-    const gmailComp=gmailInitiater(creds)
+    const gmail=gmailInitiater(creds)
     const raw = await makebody(message)
     const { data: { id } } = await gmail.users.messages.send({
         userId: 'me',
@@ -72,7 +64,7 @@ export async function replyMail(message, threadId,creds) {
 }
 
 export async function deleteThread(threadId,creds) {
-    const gmailComp=gmailInitiater(creds)
+    const gmail=gmailInitiater(creds)
     const data = await gmail.users.threads.delete({
         userId: 'me',
         id: threadId
@@ -80,7 +72,7 @@ export async function deleteThread(threadId,creds) {
     console.log(data.data)
 }
 export async function fetchMails(options,creds) {
-    const gmailComp=gmailInitiater(creds)
+    const gmail=gmailInitiater(creds)
     const data = await gmail.users.messages.list(options)
     const messagesIds = data.data.messages
     const uniqueThreadIDs = Array.from(new Set(messagesIds.map(item => item.threadId)))
@@ -112,7 +104,7 @@ export async function fetchMails(options,creds) {
 
 
 export async function fetchMailById(id,creds){
-    const gmailComp=gmailInitiater(creds)
+    const gmail=gmailInitiater(creds)
     const res = await gmail.users.threads.get({
         userId: 'me',
         id,
@@ -168,7 +160,7 @@ export async function fetchMailById(id,creds){
     return { ...initialMessage, replyAndForwards: messages.slice(1), threadId: id }
 }
 export async function fetchAttachments(attachmentId, messageId,creds) {
-    const gmailComp=gmailInitiater(creds)
+    const gmail=gmailInitiater(creds)
     const res = await gmail.users.messages.attachments.get({
         id: attachmentId, messageId, userId: 'me'
     })

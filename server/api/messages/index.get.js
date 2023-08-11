@@ -1,7 +1,12 @@
 import { fetchMails } from "../../gmail"
+import { useRealm } from "../../realm"
+import {ObjectID} from 'bson'
 
 export default defineEventHandler(async (event)=>{
     try {
+        const id=event.context.user
+        const {mongo}=useRealm()
+        const userCollection=mongo
         const {pageToken,type}=getQuery(event)
         const options={
             userId:'me',
@@ -14,7 +19,9 @@ export default defineEventHandler(async (event)=>{
         if(pageToken){
             options.pageToken=pageToken
         }
-        const res=await fetchMails(options)
+        const {client_id,client_secret,refresh_token}=await userCollection.findOne({_id:ObjectID(id)})
+        const creds={client_id,client_secret,refresh_token}
+        const res=await fetchMails(options,creds)
         return res
         
     } catch (error) {
