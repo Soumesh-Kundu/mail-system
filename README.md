@@ -65,32 +65,32 @@ NUXT_DB
 # MongoDB Collection name for the database
 NUXT_COLLECTION
 
-# JSON Web Token secret : anything you like
+# JSON Web Token secret: anything you like
 NUXT_JWT_SECRET
 ```
 
 ## Prerequisites
 
-### Devloper 
+### Developer 
 
 MongoDB:
 
 1. Set up the MongoDB Realm App
 2. Enable the API KEY Authentication
-3. Get a API KEY from Realm
-4. Set the API KEY with its associated ENV varialbe
-5. Add "Read And Write All" rule to your collection of your chosen database
+3. Get an API KEY from Realm
+4. Set the API KEY with its associated ENV variable
+5. Add the "Read And Write All" rule to your collection of your chosen database
 
-Any help follow MongoDB Realm [Docs](https://www.mongodb.com/docs/realm/)
+For any help needed, follow MongoDB Realm [Docs](https://www.mongodb.com/docs/realm/)
 
 ### User(Vistor of website)
 
 Google Cloud Console:
 
 1. Should have an app Already Setup in their console (So the user can use the OAuth Credentials)
-2. Make a OAuth Credentials
+2. Make an OAuth Credentials
 3. Give Redirect URI to the OAuth Credentials as the Home page/Authorize page state in the Our mail website
 4. User should have enabled Gmail api in their console
-5. User the Client ID and Client Secret give by the OAuth Credentials to Authroze to use the app
+5. User then uses the Client ID and Client Secret given by the OAuth Credentials to Authroze to use the app
 
-Note: This app uses a JWT token for secure api calls so any other user who have not authroize can't access that. JWT token will be set Cookies so the session will be temporary for the user. after closing the browser if the user comes again then he/she should have again authorize themselve with the correct credentials that they have previously given
+Note: This app uses a JWT token for secure api calls so any other user who has not authorize can't access that. JWT token will be set Cookies so the session will be temporary for the user. after closing the browser if the user comes again then he/she should have again authorize themselves with the correct credentials that they have previously given
