@@ -1,5 +1,5 @@
 import google from '@googleapis/gmail'
-import MailComposer from 'nodemailer/lib/mail-composer'
+import MailComposer from 'nodemailer/lib/mail-composer/index'
 const redirect_uris=[`${useRuntimeConfig().baseUrl}/callback`]
 
 function gmailInitiater(creds){
